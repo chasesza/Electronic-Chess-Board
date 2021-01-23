@@ -4,7 +4,7 @@ from datetime import datetime
 
 UART_OFFSET = 33
 USER_LICHESS_ID = 'chaseszafranski'
-pgn_path = '/mnt/c/users/chase/dropbox/chesspgns/'
+PGN_PATH = '/mnt/c/users/chase/dropbox/chesspgns/'
 ser = serial.Serial('/dev/ttyS4')
 
 def wait_for_game_start(stream):
@@ -296,7 +296,7 @@ while play[0] == play[2] and play[1] == play[3]:
         print('\a')  # notification sound after opponent's move
         move_number += 1
 
-    game_file = open(pgn_path+str(datetime.now())+'.txt','w')  # create game file
+    game_file = open(PGN_PATH+str(datetime.now())+'.txt','w')  # create game file
     game_file.write(client.games.export(gameID, True))  # write the game to the file as a pgn
     game_file.close()  # close the game file
     play = get_move()
