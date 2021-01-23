@@ -7,17 +7,17 @@ This electronic chess board interacts with the Lichess API to play against onlin
 overview.pdf
 * pictures of the project
 * explanation of the chess board user interface
-* control flow diagram
+* communication flow diagram
 <br>  
 
 circuit_schematic.pdf
-* circuit schematic of the LED and button matrices
+* circuit schematic showing connections between the MSP430 launchpad, shift registers, LED matrix, and button matrix
 * made in KiCad
 <br>  
 
 chess_program.py
-* runs on a PC
-* controls communication between Lichess's servers and the MSP-EXP430FR6989 launchpad
+* runs on a computer
+* controls communication between Lichess's servers and the MSP430 launchpad
 <br>
 
 main.c
