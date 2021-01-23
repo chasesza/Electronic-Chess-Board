@@ -7,7 +7,7 @@ This electronic chess board interacts with the Lichess API to play against onlin
 overview.pdf
 * pictures of the project
 * explanation of the chess board user interface
-* control flow diagram
+* communication flow diagram
 <br>  
 
 circuit_schematic.pdf
