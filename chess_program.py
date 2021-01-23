@@ -9,7 +9,7 @@ ser = serial.Serial('/dev/ttyS4')
 
 def wait_for_game_start(stream):
     """
-    waits for the game start event
+    Waits for the game start event
     :param stream: iterator of events
     :return: the gameID
     :rtype: string
@@ -52,7 +52,7 @@ def get_next_game_state(move_list, id, stream):
 
 def get_post_move_game_state(move_list_to_find, stream):
     """
-    Gets the game state after the user's move, discard any draw offer an opponent made during the user's turn
+    Gets the game state after the user's move, discards any draw offer an opponent made during the user's turn
     :param str move_list_to_find: all moves made so far
     :param str id: the gameID
     :param stream: iterator over game state
@@ -231,7 +231,6 @@ def game_over(state, stream):
 
 
 # Get api access token
-# This will need to be replaced with my actual account token
 with open('./lichess personal api access token.txt') as f:
     token = f.read()
 
@@ -281,7 +280,7 @@ while play[0] == play[2] and play[1] == play[3]:
             target_move_list = make_move(gameID, move, get_move_list(game_state), game_stream)
             if game_ended:
                 break
-            # this function is different to avoid issues with draw offers opponents placed during the user's move
+            # this function is different to avoid issues with draw offers opponents place during the user's move
             game_state = get_post_move_game_state(target_move_list, game_stream)  # state after user makes their move
             if game_over(game_state, game_stream):
                 break
