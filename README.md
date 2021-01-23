@@ -16,7 +16,7 @@ circuit_schematic.pdf
 <br>  
 
 chess_program.py
-* runs on a PC
+* runs on a computer
 * controls communication between Lichess's servers and the MSP430 launchpad
 <br>
 
