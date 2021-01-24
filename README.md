@@ -30,3 +30,12 @@ main.c
 script.bat
 * script to run chess_program.py through the windows subsytem for linux
 
+## Required Python modules
+* berserk
+  * Python client for the Lichess API
+  * can be installed by running pip install berserk
+<br>  
+
+* pySerial
+  * communicates with the MSP430 through the virtual serial port
+  * can be installed by running pip install pyserial
