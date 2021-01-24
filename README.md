@@ -28,5 +28,5 @@ main.c
 <br>  
 
 script.bat
-* runs the python script through the windows subsytem for linux
+* script to run chess_program.py through the windows subsytem for linux
 
