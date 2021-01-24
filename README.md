@@ -25,3 +25,8 @@ main.c
 * communicates with chess_program.py via UART
   * sends button input to chess_program.py
   * turns on LEDs as requested by chess_program.py
+<br>  
+
+script.bat
+* runs the python script through the windows subsytem for linux
+
