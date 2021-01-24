@@ -11,7 +11,7 @@ def wait_for_game_start(stream):
     """
     Waits for the game start event
     :param stream: iterator of events
-    :return: the gameID
+    :return: the game_ID
     :rtype: string
     """
     event = next(stream)
@@ -32,7 +32,7 @@ def get_next_game_state(move_list, id, stream):
     """
     Gets the game state after the opponent's next move
     :param str move_list: all moves made so far
-    :param str id: the gameID
+    :param str id: the game_ID
     :param stream: iterator over game state
     :return: current game state
     :rtype: dict
@@ -54,7 +54,7 @@ def get_post_move_game_state(move_list_to_find, stream):
     """
     Gets the game state after the user's move, discards any draw offer an opponent made during the user's turn
     :param str move_list_to_find: all moves made so far
-    :param str id: the gameID
+    :param str id: the game_ID
     :param stream: iterator over game state
     :return: current game state
     :rtype: dict
@@ -194,7 +194,7 @@ def get_move_list(state):
 def handle_draw(id):
     """
     Decide whether or not to accept a draw offer
-    :param str id: gameID
+    :param str id: game_ID
     :return: whether the draw was accepted
     :rtype: boolean
     """
@@ -249,12 +249,22 @@ play = get_move()
 while play[0] == play[2] and play[1] == play[3]:
 
     display_two_squares('d1e8')
-
-    # Create seek
-    client.board.seek(30, 0, True)
-    gameID = wait_for_game_start(event_stream)
-    print("gameID:  " + gameID)
-    game_stream = client.board.stream_game_state(gameID)
+    if play[0] == 'h' and play[1] == '1':
+        # Wait for a challenge to be received, then accept it
+        current_event = next(event_stream)
+        while current_event['type'] != 'challenge':
+            current_event = next(event_stream)
+        challenge_ID = current_event['challenge']['id']
+        client.challenges.accept(challenge_ID)
+    elif: play[0] == 'h' and play[1] == '2':
+        # Challenge my dad to an unrated game with unlimited time
+        client.challenges.create('Jeffsza',False)
+    else:
+        # Create seek
+        client.board.seek(30, 0, True)
+    game_ID = wait_for_game_start(event_stream)
+    print("game_ID:  " + game_ID)
+    game_stream = client.board.stream_game_state(game_ID)
 
     game_event = next(game_stream)
     if game_event["white"]["id"] == USER_LICHESS_ID:
@@ -277,7 +287,7 @@ while play[0] == play[2] and play[1] == play[3]:
         # user's move
         if move_number > 1 or color == "white":
             move = get_move();
-            target_move_list = make_move(gameID, move, get_move_list(game_state), game_stream)
+            target_move_list = make_move(game_ID, move, get_move_list(game_state), game_stream)
             if game_ended:
                 break
             # this function is different to avoid issues with draw offers opponents place during the user's move
@@ -287,7 +297,7 @@ while play[0] == play[2] and play[1] == play[3]:
             set_clock(game_state, their_color)
             display_last_move(game_state)  # user move
         # opponent's move
-        game_state = get_next_game_state(get_move_list(game_state), gameID, game_stream)  # state after opponent moves
+        game_state = get_next_game_state(get_move_list(game_state), game_ID, game_stream)  # state after opponent moves
         if game_over(game_state, game_stream):
             break
         set_clock(game_state, color)
@@ -296,7 +306,7 @@ while play[0] == play[2] and play[1] == play[3]:
         move_number += 1
 
     game_file = open(PGN_PATH+str(datetime.now())+'.txt','w')  # create game file
-    game_file.write(client.games.export(gameID, True))  # write the game to the file as a pgn
+    game_file.write(client.games.export(game_ID, True))  # write the game to the file as a pgn
     game_file.close()  # close the game file
     play = get_move()
 ser.write(b'o')
