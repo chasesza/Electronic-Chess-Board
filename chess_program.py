@@ -256,7 +256,7 @@ while play[0] == play[2] and play[1] == play[3]:
             current_event = next(event_stream)
         challenge_ID = current_event['challenge']['id']
         client.challenges.accept(challenge_ID)
-    elif: play[0] == 'h' and play[1] == '2':
+    elif play[0] == 'h' and play[1] == '2':
         # Challenge my dad to an unrated game with unlimited time
         client.challenges.create('Jeffsza',False)
     else:
