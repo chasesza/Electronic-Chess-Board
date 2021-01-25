@@ -20,7 +20,7 @@ def wait_for_game_start(stream):
     return event["game"]["id"]
 
 
-def invalid_move(stream):
+def invalid_move():
     """Responds to invalid moves
     :return: nothing
     """
@@ -230,6 +230,69 @@ def game_over(state, stream):
     return True
 
 
+def get_new_input():
+    """
+    Checks for and returns new input
+    :return: new input
+    :rtype: string
+    """
+    ser.timeout = 0.2
+    start_byte = ser.read().decode('ascii')
+    if start_byte == 's':
+        ser.write(b'a')  # acknowledge that the msp430 is sending data
+        while start_byte == 's':
+            start_byte = ser.read().decode('ascii')
+        ascii_move = start_byte + ser.read().decode('ascii')
+        while len(ascii_move) != 2:
+            ser.write(b'r')  # ask for a repeat
+            ascii_move = ser.read(2).decode('ascii')
+
+        # Decode move
+        move = chr(((ord(ascii_move[0])-UART_OFFSET)%8)+ord('a'))
+        move += chr(((ord(ascii_move[0])-UART_OFFSET)//8)+ord('1'))
+        move += chr(((ord(ascii_move[1])-UART_OFFSET)%8)+ord('a'))
+        move += chr(((ord(ascii_move[1])-UART_OFFSET)//8)+ord('1'))
+
+
+def handle_input(move, game_ID):
+    """
+    Make a move, forfeit, or request a draw based on button matrix input
+    :param str move: the button matrix input
+    :param str game_ID: the Lichess game ID
+    :return: nothing
+    """
+    if move[0] == move[2] and move[1] == move[3]:
+        if move[1] == 1 or move[1] == 8:
+            client.board.resign_game(game_ID)  # forfeit
+        if move[1] == 2 or move[1] == 7:
+            client.board.offer_draw(game_ID)
+    else:
+        try:
+            client.board.make_move(game_ID, move)
+        except berserk.exceptions.ResponseError:
+            invalid_move()
+    return
+
+
+def handle_new_game_state(game_stream):
+    """
+    Checks for and handles changes to the game state
+    :param stream: iterator over the game state
+    :return: whether or not the game has ended
+    :rtype: boolean
+    """
+    try:
+        state = next(game_stream)
+    except StopIteration:
+        return False
+    
+    if state['type'] != 'gameState':
+        return False
+    
+    # Display most recent move
+    display_two_squares(state['moves'].split()[-1]
+
+    
 # Get api access token
 with open('./lichess personal api access token.txt') as f:
     token = f.read()
@@ -241,8 +304,6 @@ client = berserk.Client(session)
 # Open the stream of events
 event_stream = client.board.stream_incoming_events()
 
-game_ended = False
-
 # Wait for input to start a game
 # double clicking the same button indicates that the user wants to play
 play = get_move()
@@ -250,18 +311,23 @@ while play[0] == play[2] and play[1] == play[3]:
 
     display_two_squares('d1e8')
     if play[0] == 'h' and play[1] == '1':
+        
         # Wait for a challenge to be received, then accept it
         current_event = next(event_stream)
+
         while current_event['type'] != 'challenge':
             current_event = next(event_stream)
         challenge_ID = current_event['challenge']['id']
         client.challenges.accept(challenge_ID)
+
     elif play[0] == 'h' and play[1] == '2':
         # Challenge my dad to an unrated game with unlimited time
         client.challenges.create('Jeffsza',False)
+
     else:
         # Create seek
         client.board.seek(30, 0, True)
+
     game_ID = wait_for_game_start(event_stream)
     print("game_ID:  " + game_ID)
     game_stream = client.board.stream_game_state(game_ID)
@@ -280,31 +346,13 @@ while play[0] == play[2] and play[1] == play[3]:
 
     game_state = game_event["state"]
 
-    move_number = 1
-    move = ""
-    game_ended = False
-    while move != "quit":
-        # user's move
-        if move_number > 1 or color == "white":
-            move = get_move();
-            target_move_list = make_move(game_ID, move, get_move_list(game_state), game_stream)
-            if game_ended:
-                break
-            # this function is different to avoid issues with draw offers opponents place during the user's move
-            game_state = get_post_move_game_state(target_move_list, game_stream)  # state after user makes their move
-            if game_over(game_state, game_stream):
-                break
-            set_clock(game_state, their_color)
-            display_last_move(game_state)  # user move
-        # opponent's move
-        game_state = get_next_game_state(get_move_list(game_state), game_ID, game_stream)  # state after opponent moves
-        if game_over(game_state, game_stream):
+    # Main game loop
+    while True:
+        handle_input(get_new_input(), game_ID )
+        if handle_new_game_state(game_stream):
             break
-        set_clock(game_state, color)
-        display_last_move(game_state)  # opponent's move
-        print('\a')  # notification sound after opponent's move
-        move_number += 1
 
+    # Save game as a PGN
     game_file = open(PGN_PATH+str(datetime.now())+'.txt','w')  # create game file
     game_file.write(client.games.export(game_ID, True))  # write the game to the file as a pgn
     game_file.close()  # close the game file
