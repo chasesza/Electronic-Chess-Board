@@ -242,16 +242,22 @@ def get_new_input():
         ser.write(b'a')  # acknowledge that the msp430 is sending data
         while start_byte == 's':
             start_byte = ser.read().decode('ascii')
+            print('s')
         ascii_move = start_byte + ser.read().decode('ascii')
         while len(ascii_move) != 2:
             ser.write(b'r')  # ask for a repeat
             ascii_move = ser.read(2).decode('ascii')
+
+        print('to move decoding')
 
         # Decode move
         move = chr(((ord(ascii_move[0])-UART_OFFSET)%8)+ord('a'))
         move += chr(((ord(ascii_move[0])-UART_OFFSET)//8)+ord('1'))
         move += chr(((ord(ascii_move[1])-UART_OFFSET)%8)+ord('a'))
         move += chr(((ord(ascii_move[1])-UART_OFFSET)//8)+ord('1'))
+        return move
+    
+    return ''
 
 
 def handle_input(move, game_ID):
@@ -261,6 +267,18 @@ def handle_input(move, game_ID):
     :param str game_ID: the Lichess game ID
     :return: nothing
     """
+
+    # Check if a move was actually made
+    print('handle input function')
+    print(move)
+    print('len(move) = ')
+    print(len(move))
+    if len(move) == 0: 
+        return
+
+    print(move)
+
+    # Resign, make draw requests, and move
     if move[0] == move[2] and move[1] == move[3]:
         if move[1] == 1 or move[1] == 8:
             client.board.resign_game(game_ID)  # forfeit
@@ -283,14 +301,25 @@ def handle_new_game_state(game_stream):
     """
     try:
         state = next(game_stream)
+        print('state')
+        print(state)
     except StopIteration:
+        print('no iter')
         return False
     
+    # The Lichess API sends game chats in the same iterator as the game states, this code discards chats
     if state['type'] != 'gameState':
         return False
-    
+
+    # If the game is over
+    if state['status'] != 'started':
+        game_over(state)
+        return True
+
     # Display most recent move
-    display_two_squares(state['moves'].split()[-1]
+    display_two_squares(state['moves'].split()[-1])
+    
+    return False
 
     
 # Get api access token
@@ -307,6 +336,7 @@ event_stream = client.board.stream_incoming_events()
 # Wait for input to start a game
 # double clicking the same button indicates that the user wants to play
 play = get_move()
+print(play)
 while play[0] == play[2] and play[1] == play[3]:
 
     display_two_squares('d1e8')
