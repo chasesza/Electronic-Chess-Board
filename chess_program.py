@@ -146,7 +146,7 @@ def set_clock(state, who):
     :return: none
     """
     key = who[0] + "time"
-    print(str(who) + ": " + str(state[key].minute) + ":" + str(state[key].second))  # this will need to be changed
+    print(str(who) + ": " + str(state[key].minute) + ":" + str(state[key].second))
 
 
 def display_last_move(state):
@@ -298,7 +298,7 @@ def handle_input(move, game_ID):
     return
 
 
-def handle_new_game_state(game_stream):
+def handle_new_game_state(game_stream, opponent_color):
     """
     Checks for and handles changes to the game state
     :param stream: iterator over the game state
@@ -321,6 +321,10 @@ def handle_new_game_state(game_stream):
     if state['status'] != 'started':
         game_over(state)
         return True
+
+    # Flash the LEDs slowly if the opponent requests a draw
+    if state[opponent_color[0]+'draw'] == True:
+        ser.write(b'd')
 
     # Display most recent move
     display_two_squares(state['moves'].split()[-1])
@@ -371,11 +375,11 @@ while play[0] == play[2] and play[1] == play[3]:
     game_event = next(game_stream)
     if game_event["white"]["id"] == USER_LICHESS_ID:
         color = "white"
-        their_color = "black"
+        opponent_color = "black"
         display_two_squares('c2f1')
     else:
         color = "black"
-        their_color = "white"
+        opponent_color = "white"
         display_two_squares('f7c8')
 
     print("color:  " + color)
@@ -389,7 +393,7 @@ while play[0] == play[2] and play[1] == play[3]:
     while True:
         print('non-thread loop')
         # handle_input(get_new_input(), game_ID )
-        if handle_new_game_state(game_stream):
+        if handle_new_game_state(game_stream, opponent_color):
             break
     game_ended = True
 
