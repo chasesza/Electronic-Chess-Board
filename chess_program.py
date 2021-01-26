@@ -1,11 +1,14 @@
 import berserk
 import serial
 from datetime import datetime
+from threading import Thread
+import signal
 
 UART_OFFSET = 33
 USER_LICHESS_ID = 'chaseszafranski'
 PGN_PATH = '/mnt/c/users/chase/dropbox/chesspgns/'
 ser = serial.Serial('/dev/ttyS4')
+game_ended = False
 
 def wait_for_game_start(stream):
     """
@@ -208,18 +211,11 @@ def handle_draw(id):
         return False
 
 
-def game_over(state, stream):
+def game_over(state):
     """
-    Checks for the end of the game
+    Handles the end of the game
     :param dict state: the current game state
-    :param stream: iterator over game state
-    :return: whether or not the game has ended
-    :rtype: boolean
     """
-    while state["type"] != "gameState":
-        state = next(stream)
-    if state["status"] == "started":
-        return False
     winner = state.get("winner")
     if winner == "black":
             display_two_squares('f7c8')
@@ -227,7 +223,17 @@ def game_over(state, stream):
         display_two_squares('c2f1')
     else:
         display_two_squares('e1d8')
-    return True
+    return 
+
+
+def move_loop(game_ID):
+    """
+    Constantly checks for and makes moves
+    :return: nothing
+    """
+    while not game_ended:
+        handle_input(get_new_input(),game_ID)
+    return
 
 
 def get_new_input():
@@ -280,9 +286,9 @@ def handle_input(move, game_ID):
 
     # Resign, make draw requests, and move
     if move[0] == move[2] and move[1] == move[3]:
-        if move[1] == 1 or move[1] == 8:
+        if move[1] == '1' or move[1] == '8':
             client.board.resign_game(game_ID)  # forfeit
-        if move[1] == 2 or move[1] == 7:
+        if move[1] == '2' or move[1] == '7':
             client.board.offer_draw(game_ID)
     else:
         try:
@@ -377,10 +383,15 @@ while play[0] == play[2] and play[1] == play[3]:
     game_state = game_event["state"]
 
     # Main game loop
+    game_ended = False
+    move_thread = Thread(target = move_loop,args = (game_ID,))
+    move_thread.start()
     while True:
-        handle_input(get_new_input(), game_ID )
+        print('non-thread loop')
+        # handle_input(get_new_input(), game_ID )
         if handle_new_game_state(game_stream):
             break
+    game_ended = True
 
     # Save game as a PGN
     game_file = open(PGN_PATH+str(datetime.now())+'.txt','w')  # create game file
