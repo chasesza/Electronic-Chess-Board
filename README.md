@@ -42,7 +42,7 @@ pySerial
 <br>  
 
 threading
-* allows for making moves to be run on a different thread than receiving game updates
+* allows for moves to be made on a different thread than receiving game updates
 <br>  
 
 signal
