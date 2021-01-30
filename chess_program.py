@@ -187,8 +187,8 @@ while play[0] == play[2] and play[1] == play[3]:
 
     elif play[0] == 'h' and play[1] == '2':
         # Challenge my dad to an unrated game with unlimited time
+        print('Challenged dad to a game')
         client.challenges.create('Jeffsza',rated=False,color='random')
-        print('Waiting for dad to accept')
 
     elif play[0] == 'h' and play[1] == '3':
         # Challenge an inputed user to an unrated game with unlimited time
@@ -196,8 +196,8 @@ while play[0] == play[2] and play[1] == play[3]:
 
     else:
         # Create seek
-        client.board.seek(30, 0, True)
         print('Seek created')
+        client.board.seek(20, 0, True)
 
     # Wait for the game to start, initialize game variables
     game_ID = wait_for_game_start(event_stream)
@@ -209,11 +209,14 @@ while play[0] == play[2] and play[1] == play[3]:
         color = "white"
         opponent_color = "black"
         display_two_squares('c2f1')
+        opponent_ID = game_event['black']['id']
     else:
         color = "black"
         opponent_color = "white"
         display_two_squares('f7c8')
+        opponent_ID = game_event['white']['id']
 
+    print("Opponent name:  " + opponent_ID)
     print("color:  " + color)
 
     game_state = game_event["state"]
