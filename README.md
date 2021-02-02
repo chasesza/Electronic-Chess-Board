@@ -3,6 +3,9 @@
 This electronic chess board interacts with the Lichess API to play against online opponents.
 
 [Demonstration - YouTube Link](https://youtu.be/tFdRU_AOMV4)
+<br>  
+
+[![Demonstration - YouTube Link](https://img.youtube.com/vi/tFdRU_AOMV4/default.jpg)](https://youtu.be/tFdRU_AOMV4)
 
 ## File descriptions
 
